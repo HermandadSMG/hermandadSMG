@@ -128,9 +128,11 @@
             remainingAngels.splice(randomIndex, 1); // Remove the chosen angel from the list
 
             players.push({ numero: input, nombre: `Jugador ${input}`, angel });
-
+            
+            localStorage.setItem('players', JSON.stringify(players));
+            
             // Create a WhatsApp message with the angel's name
-            const whatsappMessage = `Tu amigo oculto es ${angel.nombre}`;
+            const whatsappMessage = `Tu eres el ángel de ${angel.nombre}`;
             const whatsappLink = `https://wa.me/${input}?text=${encodeURIComponent(whatsappMessage)}`;
             window.open(whatsappLink, "_blank");
 
