@@ -43,6 +43,20 @@
             font-size: 18px;
             font-weight: bold;
         }
+        #asignacionesList {
+            margin-top: 20px;
+            font-size: 16px;
+        }
+        .resetButton {
+            margin-top: 10px;
+        }
+        .asignados {
+            margin-top: 30px;
+        }
+        #resetearContainer, #resetJuegoContainer {
+            margin-top: 20px;
+            display: none; /* Inicialmente no mostrar estas secciones */
+        }
     </style>
 </head>
 <body>
@@ -55,27 +69,37 @@
         <div id="resultado"></div>
     </div>
 
+    <div id="asignados" class="asignados">
+        <h2>Nosotros ya jugamos y ya tenemos un ángel:</h2>
+        <ul id="asignacionesList"></ul>
+    </div>
+
+    <div id="resetearContainer">
+        <h3>Administrador (963852741):</h3>
+        <label for="personaAResetear">Selecciona una persona para habilitar nuevamente:</label>
+        <select id="personaAResetear">
+            <option value="">Seleccionar...</option>
+        </select>
+        <button id="resetearButton" onclick="habilitarNuevamente()">Habilitar nuevamente</button>
+    </div>
+
+    <!-- Sección de reinicio del juego solo para el administrador -->
+    <div id="resetJuegoContainer">
+        <button id="resetJuegoButton" onclick="resetearJuego()">Resetear juego</button>
+    </div>
+
     <script>
-        // Lista de números y nombres asociados (puedes añadir más números y personas aquí)
+        // Lista de números y nombres asociados
         const listaNumeros = [
-            { numero: '933610068', nombre: 'Laura' },
-            { numero: '907565685', nombre: 'Eleana' },
-            { numero: '941200699', nombre: 'Michele' },
-            { numero: '963345328', nombre: 'Vicky' },
-            { numero: '961944437', nombre: 'Brian' },
-            { numero: '986772008', nombre: 'Mónica' },
-            { numero: '988284703', nombre: 'Richard' },
-            { numero: '959318366', nombre: 'Michael' },
-            { numero: '959193481', nombre: 'Lizeth' },
-            { numero: '941778213', nombre: 'Yamira' },
-            { numero: '984351841', nombre: 'Silvana' },
-            { numero: '918036171', nombre: 'Luis' },
-            { numero: '910446670', nombre: 'Ana' },
-            { numero: '965213858', nombre: 'Leo' },
-            { numero: '936458574', nombre: 'Lorena' },
-            { numero: '974380095', nombre: 'Elvira' },
-            { numero: '931724072', nombre: 'Gian' }
+            { numero: '1234567890', nombre: 'Juan Pérez', asignado: false },
+            { numero: '9876543210', nombre: 'Ana Gómez', asignado: false },
+            { numero: '5551234567', nombre: 'Carlos Díaz', asignado: false },
+            { numero: '2345678901', nombre: 'María López', asignado: false },
+            { numero: '6789012345', nombre: 'Pedro González', asignado: false }
         ];
+
+        // Variable para almacenar las asignaciones
+        const asignaciones = [];
 
         // Función para verificar el número y mostrar el resultado
         function verificarNumero() {
@@ -87,12 +111,27 @@
             resultado.innerHTML = '';
 
             if (persona) {
-                // Si el número coincide, mostrar el nombre y el botón para sortear
-                resultado.innerHTML = `¡Hola, ${persona.nombre}!`;
-                mostrarBotonWhatsapp(persona);
+                if (persona.asignado) {
+                    // Si el número ya fue asignado
+                    resultado.innerHTML = 'Disculpa, este número fue probado por otra persona. Por favor, dígalo al administrador para que habilite nuevamente su número.';
+                } else {
+                    // Si el número no ha sido asignado, asignar el ángel
+                    resultado.innerHTML = `¡Hola, ${persona.nombre}!`;
+                    mostrarBotonWhatsapp(persona);
+                    persona.asignado = true; // Marcar como asignado
+                }
             } else {
-                // Si el número no coincide, mostrar mensaje de error
+                // Si el número no coincide
                 resultado.innerHTML = 'Número erróneo, por favor vuelve a digitarlo.';
+            }
+
+            // Verificar si el número ingresado es el del administrador
+            if (numeroIngresado === '963852741') {
+                document.getElementById('resetearContainer').style.display = 'block'; // Mostrar el contenedor de habilitar nuevamente
+                document.getElementById('resetJuegoContainer').style.display = 'block'; // Mostrar el botón para resetear el juego
+            } else {
+                document.getElementById('resetearContainer').style.display = 'none'; // Ocultar el contenedor de habilitar nuevamente
+                document.getElementById('resetJuegoContainer').style.display = 'none'; // Ocultar el botón para resetear el juego
             }
         }
 
@@ -110,6 +149,12 @@
                 // Crear el enlace de WhatsApp con el mensaje
                 const enlaceWhatsapp = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
                 window.open(enlaceWhatsapp, '_blank');
+
+                // Guardar la asignación en la lista
+                asignaciones.push({ persona: persona.nombre, angel: amigoOculto.nombre });
+
+                // Actualizar la lista de asignados
+                actualizarListaAsignados();
             };
             document.body.appendChild(boton);
         }
@@ -117,19 +162,31 @@
         // Función para elegir un amigo al azar de la lista de personas (excluyendo a la persona actual)
         function elegirAmigoAlAzar(personaActual) {
             // Crear una nueva lista sin la persona actual
-            const listaSinActual = listaNumeros.filter(persona => persona.numero !== personaActual.numero);
+            const listaSinActual = listaNumeros.filter(persona => persona.numero !== personaActual.numero && !persona.asignado);
             // Elegir un amigo aleatorio
             const indiceAleatorio = Math.floor(Math.random() * listaSinActual.length);
-            return listaSinActual[indiceAleatorio];
+            const amigoOculto = listaSinActual[indiceAleatorio];
+            amigoOculto.asignado = true; // Marcar como asignado
+            return amigoOculto;
         }
 
-        // Detectar cuando el usuario presiona "Enter" para verificar el número
-        document.getElementById('celular').addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                verificarNumero();
-            }
-        });
-    </script>
+        // Función para actualizar la lista de asignaciones
+        function actualizarListaAsignados() {
+            const lista = document.getElementById('asignacionesList');
+            lista.innerHTML = '';
+            asignaciones.forEach(asignacion => {
+                const li = document.createElement('li');
+                li.textContent = `${asignacion.persona} → ${asignacion.angel}`;
+                lista.appendChild(li);
+            });
+        }
 
-</body>
-</html>
+        // Función para mostrar la lista de personas para habilitar nuevamente
+        function mostrarPersonasParaResetear() {
+            const select = document.getElementById('personaAResetear');
+            select.innerHTML = '<option value="">Seleccionar...</option>'; // Limpiar opciones anteriores
+            listaNumeros.forEach(persona => {
+                if (persona.asignado) {
+                    const option = document.createElement('option');
+                    option.value = persona.numero;
+                    option.textContent = `${persona.nombre} (${perso
