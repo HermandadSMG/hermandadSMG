@@ -3,26 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Juego del Amigo Oculto</title>
-    <link rel="stylesheet" href="estilos.css"> <!-- Si tienes un archivo CSS -->
+    <title>Bienvenidos al juego del Ángel</title>
+    <style>
+        body {
+            background-color: #d4f7d4; /* Fondo verde claro */
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            color: red;
+            text-align: center;
+        }
+        .container {
+            margin-top: 20px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            width: 300px;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #resultado {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
 
-    <header>
-        <h1>Bienvenido al Juego del Amigo Oculto</h1>
-    </header>
+    <h1>Bienvenidos al juego del Ángel</h1>
 
-    <main>
-        <p>¡Vamos a comenzar el sorteo del amigo oculto!</p>
-        <button id="sortearBtn">Sortear Amigo Oculto</button>
+    <div class="container">
+        <label for="celular">Ingresa tu número de celular:</label>
+        <input type="text" id="celular" placeholder="Ej. 1234567890">
+        <div id="resultado"></div>
+    </div>
 
-        <div id="resultado"></div> <!-- Aquí aparecerá el resultado del sorteo -->
-    </main>
+    <script>
+        // Lista de números y nombres asociados (puedes añadir más números y personas aquí)
+        const listaNumeros = [
+            { numero: '1234567890', nombre: 'Juan Pérez' },
+            { numero: '9876543210', nombre: 'Ana Gómez' },
+            { numero: '5551234567', nombre: 'Carlos Díaz' }
+        ];
 
-    <footer>
-        <p>¡Gracias por participar!</p>
-    </footer>
+        // Función para verificar el número y mostrar el resultado
+        function verificarNumero() {
+            const numeroIngresado = document.getElementById('celular').value;
+            const resultado = document.getElementById('resultado');
+            const persona = listaNumeros.find(persona => persona.numero === numeroIngresado);
 
-    <script src="script.js"></script> <!-- Si tienes un archivo JavaScript -->
+            // Limpiar el resultado anterior
+            resultado.innerHTML = '';
+
+            if (persona) {
+                // Si el número coincide, mostrar el nombre y el botón para sortear
+                resultado.innerHTML = `¡Hola, ${persona.nombre}!`;
+                mostrarBotonWhatsapp(persona);
+            } else {
+                // Si el número no coincide, mostrar mensaje de error
+                resultado.innerHTML = 'Número erróneo, por favor vuelve a digitarlo.';
+            }
+        }
+
+        // Función para mostrar el botón de WhatsApp con el enlace único
+        function mostrarBotonWhatsapp(persona) {
+            const boton = document.createElement('button');
+            boton.innerHTML = 'Sortear a mi Ángel';
+            boton.onclick = function() {
+                // Crear el enlace único para WhatsApp
+                const enlaceWhatsapp = `https://wa.me/?text=Hola%20${persona.nombre},%20te%20ha%20tocado%20el%20amigo%20oculto.%20Tu%20ángel%20es%20XXXXXX.`;
+                window.open(enlaceWhatsapp, '_blank');
+            };
+            document.body.appendChild(boton);
+        }
+
+        // Detectar cuando el usuario presiona "Enter" para verificar el número
+        document.getElementById('celular').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                verificarNumero();
+            }
+        });
+    </script>
+
 </body>
 </html>
