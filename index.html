@@ -76,7 +76,9 @@
     </div>
 
     <script>
-        const players = []; // Array to store players and their assigned angels
+        const players = [
+            { numero: "963852741", nombre: "Administrador", angel: null } // Agregar al administrador directamente en la lista
+        ]; // Array to store players and their assigned angels
         const usedNumbers = new Set(); // To track used phone numbers
         const angels = [
             { numero: '933610068', nombre: 'Laura' },
@@ -123,6 +125,14 @@
             }
 
             usedNumbers.add(input);
+
+            // Verificar si el número es el del administrador
+            if (input === "963852741") {
+                // Si es el administrador, redirigirlo a la página de administración
+                window.location.href = "admin_page.html"; // Redirige a una página especial para el administrador
+                return;
+            }
+
             const randomIndex = Math.floor(Math.random() * remainingAngels.length);
             const angel = remainingAngels[randomIndex];
             remainingAngels.splice(randomIndex, 1); // Remove the chosen angel from the list
@@ -144,9 +154,11 @@
             const playerList = document.getElementById('playerList');
             playerList.innerHTML = '';
             players.forEach(player => {
-                const li = document.createElement('li');
-                li.textContent = player.nombre; // Only show player name (not the angel)
-                playerList.appendChild(li);
+                if (player.numero !== "963852741") { // No mostrar al administrador en la lista de jugadores
+                    const li = document.createElement('li');
+                    li.textContent = player.nombre; // Solo el nombre del jugador, no el amigo oculto
+                    playerList.appendChild(li);
+                }
             });
         }
 
@@ -162,9 +174,11 @@
             const adminPlayerList = document.getElementById('adminPlayerList');
             adminPlayerList.innerHTML = '';
             players.forEach(player => {
-                const li = document.createElement('li');
-                li.textContent = `${player.nombre} - Amigo Oculto: ${player.angel.nombre}`;
-                adminPlayerList.appendChild(li);
+                if (player.numero !== "963852741") { // Solo mostrar el amigo oculto para el administrador
+                    const li = document.createElement('li');
+                    li.textContent = `${player.nombre} - Amigo Oculto: ${player.angel.nombre}`;
+                    adminPlayerList.appendChild(li);
+                }
             });
         }
 
@@ -172,6 +186,7 @@
             usedNumbers.clear();
             players.length = 0;
             remainingAngels = [...angels];
+            players.push({ numero: "963852741", nombre: "Administrador", angel: null }); // Volver a agregar al administrador
             updatePlayerList();
             updateAdminPlayerList();
         }
