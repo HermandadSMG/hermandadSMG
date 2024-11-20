@@ -4,112 +4,86 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Emparejamientos</title>
-    <style>
-        body {
-            background-color: green;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            color: white;
+
+    <!-- Importar funciones de Firebase -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+      import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+
+      // Configuración de Firebase
+      const firebaseConfig = {
+        apiKey: "AIzaSyCAhTOc8Wf23nCToC7e59Kp1ZcpQDQpnMI",
+        authDomain: "bd-juego-angel.firebaseapp.com",
+        projectId: "bd-juego-angel",
+        storageBucket: "bd-juego-angel.firebasestorage.app",
+        messagingSenderId: "645237533595",
+        appId: "1:645237533595:web:07199ba3da7c8ac9b1cf3e"
+      };
+
+      // Inicializar Firebase
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+
+      // Función para grabar el participante en Firebase
+      function grabarParticipante() {
+        // Obtener los valores de los campos del formulario
+        const nombre = document.getElementById('nombre').value;
+        const telefono = document.getElementById('telefono').value;
+        const estado = document.getElementById('estado').value;
+
+        // Validación de campos vacíos
+        if (nombre === '' || telefono === '') {
+            alert('Por favor, complete todos los campos');
+            return;
         }
-        h1 {
-            color: red;
-            margin-top: 50px;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: red;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            margin-top: 20px;
-            cursor: pointer;
-        }
-        button:disabled {
-            background-color: gray;
-            cursor: not-allowed;
-        }
-        .message {
-            color: yellow;
-            margin-top: 10px;
-        }
-        .pairing-list {
-            margin-top: 30px;
-            text-align: left;
-            max-height: 200px;
-            overflow-y: scroll;
-        }
-    </style>
+
+        // Crear el objeto participante con los datos del formulario
+        const participante = {
+            nombre: nombre,
+            telefono: telefono,
+            estado: estado
+        };
+
+        // Obtener la referencia a la base de datos de Firebase
+        const participantesRef = ref(db, 'Participantes');
+
+        // Agregar el participante a la base de datos
+        push(participantesRef, participante)
+          .then(() => {
+              alert('Participante grabado correctamente');
+              document.getElementById('participanteForm').reset(); // Limpiar el formulario
+          })
+          .catch((error) => {
+              alert('Error al grabar el participante: ' + error.message);
+          });
+      }
+    </script>
 </head>
 <body>
 
-    <h1>Emparejamientos del Juego del Ángel</h1>
-    <div id="pairingList" class="pairing-list">
-        <h2>Lista de Emparejamientos</h2>
-        <ul id="pairings"></ul>
-    </div>
+    <h2>Formulario de Participantes</h2>
 
-    <button id="resetButton" onclick="resetGame()">Resetear Juego</button>
-    <button id="renewButton" onclick="renewPlayer()">Renovar Participante</button>
+    <!-- Formulario de ingreso de datos -->
+    <form id="participanteForm">
+        <div>
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" required>
+        </div>
+        <div>
+            <label for="telefono">Teléfono:</label>
+            <input type="text" id="telefono" required>
+        </div>
+        <div>
+            <label for="estado">Estado:</label>
+            <select id="estado">
+                <option value="no ha jugado" selected>No ha jugado</option>
+                <option value="sí ha jugado">Sí ha jugado</option>
+            </select>
+        </div>
+        <div>
+            <button type="button" onclick="grabarParticipante()">Grabar</button>
+        </div>
+    </form>
 
-    <script>
-        const players = JSON.parse(localStorage.getItem('players')) || [];
-        const angels = [
-            { numero: '933610068', nombre: 'Laura' },
-            { numero: '907565685', nombre: 'Eleana' },
-            { numero: '941200699', nombre: 'Michele' },
-            { numero: '963345328', nombre: 'Vicky' },
-            { numero: '961944437', nombre: 'Brian' },
-            { numero: '986772008', nombre: 'Mónica'},
-            { numero: '988284703', nombre: 'Richard' },
-            { numero: '959318366', nombre: 'Michael' },
-            { numero: '959193481', nombre: 'Lizeth' },
-            { numero: '941778213', nombre: 'Yamira' },
-            { numero: '984351841', nombre: 'Silvana' },
-            { numero: '918036171', nombre: 'Luis' },
-            { numero: '910446670', nombre: 'Ana' },
-            { numero: '965213858', nombre: 'Leo' },
-            { numero: '936458574', nombre: 'Lorena' },
-            { numero: '974380095', nombre: 'Elvira' },
-            { numero: '931724072', nombre: 'Gian' }
-        ];
-
-        // Actualiza la lista de emparejamientos
-        function updatePairingList() {
-            const pairingList = document.getElementById('pairings');
-            pairingList.innerHTML = '';
-            players.forEach(player => {
-                const li = document.createElement('li');
-                li.textContent = `${player.nombre} -> Amigo Oculto: ${player.angel.nombre}`;
-                pairingList.appendChild(li);
-            });
-        }
-
-        // Función para resetear el juego
-        function resetGame() {
-            localStorage.removeItem('players');
-            alert('El juego ha sido reiniciado.');
-            window.location.reload();
-        }
-
-        // Función para renovar un jugador (eliminar su emparejamiento y asignar un nuevo ángel)
-        function renewPlayer() {
-            const playerNumber = prompt("Introduce el número de celular del jugador que deseas renovar:");
-            const playerIndex = players.findIndex(player => player.numero === playerNumber);
-            if (playerIndex !== -1) {
-                const player = players[playerIndex];
-                const remainingAngels = angels.filter(angel => !players.some(p => p.angel.numero === angel.numero));
-                const newAngel = remainingAngels[Math.floor(Math.random() * remainingAngels.length)];
-                player.angel = newAngel;
-                alert(`${player.nombre} ha renovado su emparejamiento. Nuevo amigo oculto: ${newAngel.nombre}`);
-                updatePairingList();
-                localStorage.setItem('players', JSON.stringify(players));
-            } else {
-                alert("Jugador no encontrado.");
-            }
-        }
-
-        // Cargar y mostrar la lista de emparejamientos
-        updatePairingList();
-    </script>
 </body>
 </html>
