@@ -1,76 +1,198 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Juego del Ángel</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #0a4d3c; /* Fondo verde navideño */
-      color: white;
-      text-align: center;
-    }
-
-    h1 {
-      color: red;
-      text-align: justify;
-    }
-
-    .container {
-      margin: 0 auto;
-      padding: 20px;
-      max-width: 600px;
-    }
-
-    input, button {
-      margin-top: 10px;
-      padding: 10px;
-      font-size: 16px;
-      width: 80%;
-    }
-
-    button:disabled {
-      background-color: grey;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    #soporteForm {
-      margin-top: 20px;
-    }
-
-    #soporteBtn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-    }
-
-    #listaJugadores {
-      list-style-type: none;
-      padding: 0;
-    }
-
-    #listaAmigos {
-      list-style-type: none;
-      padding: 0;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego del Ángel</title>
+    <style>
+        body {
+            background-color: green;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            color: white;
+        }
+        h1 {
+            color: red;
+            text-align: center;
+            margin-top: 50px;
+        }
+        input[type="text"] {
+            width: 200px;
+            padding: 10px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: red;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background-color: gray;
+            cursor: not-allowed;
+        }
+        .message {
+            color: yellow;
+            margin-top: 10px;
+        }
+        .hidden {
+            display: none;
+        }
+        .player-list {
+            margin-top: 30px;
+            text-align: left;
+            max-height: 200px;
+            overflow-y: scroll;
+        }
+        .admin-section {
+            margin-top: 30px;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1 id="titulo">Bienvenidos al juego del ángel</h1>
-    <p>Ingresa tu numero de celular:</p>
-    <input type="text" id="celular" placeholder="Número de celular (9 dígitos)">
-    <button id="btnIngresar" disabled>Ingresar número</button>
-    <p id="mensajeError" class="hidden">Este número no se encuentra en la lista, por favor comuníquese con el administrador.</p>
-    <div id="jugadores">
-      <h2>Lista de quienes ya jugaron</h2>
-      <ul id="listaJugadores"></ul>
+
+    <h1>Bienvenidos al juego del ángel</h1>
+    <p>Ingresa tu número de celular:</p>
+    <input type="text" id="cellNumber" placeholder="Número de 9 dígitos" maxlength="9" oninput="validateInput()">
+    <div id="message" class="message"></div>
+    <button id="ingresarButton" onclick="assignAngel()" disabled>Ingresar número</button>
+
+    <div class="player-list">
+        <h2>Lista de quienes ya jugaron</h2>
+        <ul id="playerList"></ul>
     </div>
 
-    <button id="soporteBtn">Soporte</button>
+    <div id="adminSection" class="admin-section hidden">
+        <h3>Administrador</h3>
+        <input type="text" id="adminNumber" placeholder="Número Administrador (963852741)" maxlength="9">
+        <button onclick="resetGame()">Reset</button>
+        <button onclick="cleanPlayer()">Limpiar jugador</button>
+        <ul id="adminPlayerList" class="hidden"></ul>
+    </div>
 
- 
+    <script>
+        const players = []; // Array to store players and their assigned angels
+        const usedNumbers = new Set(); // To track used phone numbers
+        const angels = [
+            { numero: '933610068', nombre: 'Laura' },
+            { numero: '907565685', nombre: 'Eleana' },
+            { numero: '941200699', nombre: 'Michele' },
+            { numero: '963345328', nombre: 'Vicky' },
+            { numero: '961944437', nombre: 'Brian' },
+            { numero: '986772008', nombre: 'Mónica'},
+            { numero: '988284703', nombre: 'Richard' },
+            { numero: '959318366', nombre: 'Michael' },
+            { numero: '959193481', nombre: 'Lizeth' },
+            { numero: '941778213', nombre: 'Yamira' },
+            { numero: '984351841', nombre: 'Silvana' },
+            { numero: '918036171', nombre: 'Luis' },
+            { numero: '910446670', nombre: 'Ana' },
+            { numero: '965213858', nombre: 'Leo' },
+            { numero: '936458574', nombre: 'Lorena' },
+            { numero: '974380095', nombre: 'Elvira' },
+            { numero: '931724072', nombre: 'Gian' }
+
+        ];
+        let remainingAngels = [...angels]; // Copy of the angels array for random selection
+
+        function validateInput() {
+            const input = document.getElementById('cellNumber').value;
+            const button = document.getElementById('ingresarButton');
+            const message = document.getElementById('message');
+            
+            if (input.length === 9 && !isNaN(input)) {
+                button.disabled = false;
+                message.textContent = "";
+            } else {
+                button.disabled = true;
+                message.textContent = "Por favor ingresa un número válido de 9 dígitos.";
+            }
+        }
+
+        function assignAngel() {
+            const input = document.getElementById('cellNumber').value;
+            const message = document.getElementById('message');
+            if (usedNumbers.has(input)) {
+                message.textContent = "Este número ya fue usado, por favor comunicate con el administrador.";
+                return;
+            }
+
+            usedNumbers.add(input);
+            const randomIndex = Math.floor(Math.random() * remainingAngels.length);
+            const angel = remainingAngels[randomIndex];
+            remainingAngels.splice(randomIndex, 1); // Remove the chosen angel from the list
+
+            players.push({ numero: input, nombre: `Jugador ${input}`, angel });
+
+            // Create a WhatsApp message with the angel's name
+            const whatsappMessage = `Tu amigo oculto es ${angel.nombre}`;
+            const whatsappLink = `https://wa.me/${input}?text=${encodeURIComponent(whatsappMessage)}`;
+            window.open(whatsappLink, "_blank");
+
+            // Display the list of players who have played (without showing the angels for non-admins)
+            updatePlayerList();
+            document.getElementById('cellNumber').value = ''; // Reset input field
+            document.getElementById('ingresarButton').disabled = true; // Disable button again
+        }
+
+        function updatePlayerList() {
+            const playerList = document.getElementById('playerList');
+            playerList.innerHTML = '';
+            players.forEach(player => {
+                const li = document.createElement('li');
+                li.textContent = player.nombre; // Only show player name (not the angel)
+                playerList.appendChild(li);
+            });
+        }
+
+        function showAdminSection() {
+            const adminNumber = document.getElementById('adminNumber').value;
+            if (adminNumber === "963852741") {
+                document.getElementById('adminSection').classList.remove('hidden');
+                updateAdminPlayerList();
+            }
+        }
+
+        function updateAdminPlayerList() {
+            const adminPlayerList = document.getElementById('adminPlayerList');
+            adminPlayerList.innerHTML = '';
+            players.forEach(player => {
+                const li = document.createElement('li');
+                li.textContent = `${player.nombre} - Amigo Oculto: ${player.angel.nombre}`;
+                adminPlayerList.appendChild(li);
+            });
+        }
+
+        function resetGame() {
+            usedNumbers.clear();
+            players.length = 0;
+            remainingAngels = [...angels];
+            updatePlayerList();
+            updateAdminPlayerList();
+        }
+
+        function cleanPlayer() {
+            const playerNumber = prompt("Introduce el número de celular del jugador que deseas limpiar:");
+            const playerIndex = players.findIndex(player => player.numero === playerNumber);
+            if (playerIndex !== -1) {
+                const player = players[playerIndex];
+                remainingAngels.push(player.angel); // Return the angel to the pool
+                players.splice(playerIndex, 1); // Remove the player temporarily
+                usedNumbers.delete(player.numero); // Remove the number from the used set
+                alert(`Jugador ${player.nombre} ha sido limpiado y puede jugar nuevamente.`);
+                updatePlayerList();
+                updateAdminPlayerList();
+            } else {
+                alert("Jugador no encontrado.");
+            }
+        }
+
+        document.getElementById('adminNumber').addEventListener('input', showAdminSection);
+    </script>
+</body>
+</html>
