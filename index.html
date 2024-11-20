@@ -4,7 +4,60 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Juego del Ángel</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #0a4d3c; /* Fondo verde navideño */
+      color: white;
+      text-align: center;
+    }
+
+    h1 {
+      color: red;
+      text-align: justify;
+    }
+
+    .container {
+      margin: 0 auto;
+      padding: 20px;
+      max-width: 600px;
+    }
+
+    input, button {
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 16px;
+      width: 80%;
+    }
+
+    button:disabled {
+      background-color: grey;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    #soporteForm {
+      margin-top: 20px;
+    }
+
+    #soporteBtn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+    }
+
+    #listaJugadores {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    #listaAmigos {
+      list-style-type: none;
+      padding: 0;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -20,190 +73,4 @@
 
     <button id="soporteBtn">Soporte</button>
 
-    <div id="soporteForm" class="hidden">
-      <input type="password" id="clave" placeholder="Clave de soporte">
-      <button id="btnValidarClave">Validar Clave</button>
-      <div id="listaAmigosOcultos" class="hidden">
-        <h3>Lista de jugadores y su amigo oculto:</h3>
-        <ul id="listaAmigos"></ul>
-        <button id="resetBtn" class="hidden">Reset</button>
-        <button id="limpiarBtn" class="hidden">Limpiar jugador</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="script.js"></script>
-</body>
-</html>
-body {
-  font-family: Arial, sans-serif;
-  background-color: #0a4d3c; /* Fondo verde navideño */
-  color: white;
-  text-align: center;
-}
-
-h1 {
-  color: red;
-  text-align: justify;
-}
-
-.container {
-  margin: 0 auto;
-  padding: 20px;
-  max-width: 600px;
-}
-
-input, button {
-  margin-top: 10px;
-  padding: 10px;
-  font-size: 16px;
-  width: 80%;
-}
-
-button:disabled {
-  background-color: grey;
-}
-
-.hidden {
-  display: none;
-}
-
-#soporteForm {
-  margin-top: 20px;
-}
-
-#soporteBtn {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-}
-
-#listaJugadores {
-  list-style-type: none;
-  padding: 0;
-}
-
-#listaAmigos {
-  list-style-type: none;
-  padding: 0;
-}
-// Lista de jugadores con número y nombre
-const jugadores = [
-  { numero: '123456789', nombre: 'Juan' },
-  { numero: '987654321', nombre: 'Ana' },
-  { numero: '456789123', nombre: 'Carlos' },
-];
-
-let jugadoresYaJugaron = [];
-let amigosOcultos = [];
-let claveCorrecta = "963852741";
-let numeroIngresado = '';
-
-// Función para actualizar la lista de jugadores
-function actualizarListaJugadores() {
-  const lista = document.getElementById("listaJugadores");
-  lista.innerHTML = '';
-  jugadoresYaJugaron.forEach(jugador => {
-    const li = document.createElement("li");
-    li.textContent = `${jugador.nombre}`;
-    lista.appendChild(li);
-  });
-}
-
-// Verificar si el número ya fue utilizado
-function verificarNumero() {
-  numeroIngresado = document.getElementById("celular").value;
-  const boton = document.getElementById("btnIngresar");
-
-  // Verifica si el número ya ha sido ingresado
-  if (jugadoresYaJugaron.some(jugador => jugador.numero === numeroIngresado)) {
-    boton.disabled = true;
-    document.getElementById("mensajeError").classList.remove("hidden");
-  } else {
-    document.getElementById("mensajeError").classList.add("hidden");
-    boton.disabled = false;
-  }
-}
-
-// Generar amigo oculto
-function asignarAmigoOculto() {
-  const jugador = jugadores.find(j => j.numero === numeroIngresado);
-
-  if (!jugador) {
-    alert("Este número no está registrado. Comuníquese con el administrador.");
-    return;
-  }
-
-  // Asignar amigo oculto de manera aleatoria
-  const disponibles = jugadores.filter(j => j.numero !== jugador.numero && !jugadoresYaJugaron.some(jy => jy.numero === j.numero));
-  if (disponibles.length === 0) {
-    alert("No hay más jugadores disponibles.");
-    return;
-  }
-
-  const amigoOculto = disponibles[Math.floor(Math.random() * disponibles.length)];
-
-  // Enviar mensaje de WhatsApp
-  const url = `https://wa.me/${numeroIngresado}?text=Tu%20amigo%20oculto%20es%20${amigoOculto.nombre}`;
-  window.open(url, "_blank");
-
-  // Registrar en jugadores ya jugaron
-  jugadoresYaJugaron.push({ numero: jugador.numero, nombre: jugador.nombre, amigoOculto: amigoOculto.nombre });
-  actualizarListaJugadores();
-}
-
-// Validar clave de soporte
-function validarClave() {
-  const clave = document.getElementById("clave").value;
-
-  if (clave === claveCorrecta) {
-    document.getElementById("listaAmigosOcultos").classList.remove("hidden");
-    document.getElementById("resetBtn").classList.remove("hidden");
-    document.getElementById("limpiarBtn").classList.remove("hidden");
-
-    // Mostrar lista de amigos ocultos
-    const listaAmigos = document.getElementById("listaAmigos");
-    listaAmigos.innerHTML = '';
-    jugadoresYaJugaron.forEach(jugador => {
-      const li = document.createElement("li");
-      li.textContent = `${jugador.nombre} - ${jugador.amigoOculto}`;
-      listaAmigos.appendChild(li);
-    });
-  } else {
-    alert("No es la clave");
-  }
-}
-
-// Resetear el juego
-function resetearJuego() {
-  jugadoresYaJugaron = [];
-  actualizarListaJugadores();
-  alert("Juego reseteado.");
-}
-
-// Limpiar jugador
-function limpiarJugador() {
-  const numero = prompt("Ingresa el número de celular del jugador a limpiar:");
-  const index = jugadoresYaJugaron.findIndex(j => j.numero === numero);
-  
-  if (index !== -1) {
-    jugadoresYaJugaron.splice(index, 1);
-    actualizarListaJugadores();
-    alert("Jugador limpiado.");
-  } else {
-    alert("Número no encontrado.");
-  }
-}
-
-// Evento de ingreso del número
-document.getElementById("celular").addEventListener("input", verificarNumero);
-document.getElementById("btnIngresar").addEventListener("click", asignarAmigoOculto);
-
-// Evento de soporte
-document.getElementById("soporteBtn").addEventListener("click", () => {
-  document.getElementById("soporteForm").classList.toggle("hidden");
-});
-
-document.getElementById("btnValidarClave").addEventListener("click", validarClave);
-document.getElementById("resetBtn").addEventListener("click", resetearJuego);
-document.getElementById("limpiarBtn").addEventListener("click", limpiarJugador);
+ 
