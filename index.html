@@ -67,10 +67,6 @@
         <ul id="playerList"></ul>
     </div>
 
-    <!-- Agregar al final de tu archivo index.html -->
-    
-    <button onclick="window.location.href='emparejamientos.html'">Ver Emparejamientos</button>
-
     <div id="adminSection" class="admin-section hidden">
         <h3>Administrador</h3>
         <input type="text" id="adminNumber" placeholder="Número Administrador (963852741)" maxlength="9">
@@ -79,9 +75,29 @@
         <ul id="adminPlayerList" class="hidden"></ul>
     </div>
 
-    <script>
-        const players = []; // Array to store players and their assigned angels
-        const usedNumbers = new Set(); // To track used phone numbers
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Importa las funciones necesarias de Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCAhTOc8Wf23nCToC7e59Kp1ZcpQDQpnMI",
+            authDomain: "bd-juego-angel.firebaseapp.com",
+            projectId: "bd-juego-angel",
+            storageBucket: "bd-juego-angel.firebasestorage.app",
+            messagingSenderId: "645237533595",
+            appId: "1:645237533595:web:07199ba3da7c8ac9b1cf3e"
+        };
+
+        // Inicializa Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Lista de jugadores y ángeles
+        const players = [];
+        const usedNumbers = new Set();
         const angels = [
             { numero: '933610068', nombre: 'Laura' },
             { numero: '907565685', nombre: 'Eleana' },
@@ -100,10 +116,10 @@
             { numero: '936458574', nombre: 'Lorena' },
             { numero: '974380095', nombre: 'Elvira' },
             { numero: '931724072', nombre: 'Gian' }
-
         ];
-        let remainingAngels = [...angels]; // Copy of the angels array for random selection
+        let remainingAngels = [...angels];
 
+        // Validación de input para el número de celular
         function validateInput() {
             const input = document.getElementById('cellNumber').value;
             const button = document.getElementById('ingresarButton');
@@ -118,7 +134,8 @@
             }
         }
 
-        function assignAngel() {
+        // Asignar un ángel al jugador y guardarlo en Firestore
+        async function assignAngel() {
             const input = document.getElementById('cellNumber').value;
             const message = document.getElementById('message');
             if (usedNumbers.has(input)) {
@@ -129,76 +146,57 @@
             usedNumbers.add(input);
             const randomIndex = Math.floor(Math.random() * remainingAngels.length);
             const angel = remainingAngels[randomIndex];
-            remainingAngels.splice(randomIndex, 1); // Remove the chosen angel from the list
+            remainingAngels.splice(randomIndex, 1);
 
             players.push({ numero: input, nombre: `Jugador ${input}`, angel });
-            
-            localStorage.setItem('players', JSON.stringify(players));
-            
-            // Create a WhatsApp message with the angel's name
-            const whatsappMessage = `Tu eres el ángel de ${angel.nombre}`;
-            const whatsappLink = `https://wa.me/${input}?text=${encodeURIComponent(whatsappMessage)}`;
-            window.open(whatsappLink, "_blank");
 
-            // Display the list of players who have played (without showing the angels for non-admins)
-            updatePlayerList();
-            document.getElementById('cellNumber').value = ''; // Reset input field
-            document.getElementById('ingresarButton').disabled = true; // Disable button again
+            // Guardar el emparejamiento en Firestore
+            try {
+                await addDoc(collection(db, "emparejamientos"), {
+                    jugador: `Jugador ${input}`,
+                    amigoOculto: angel.nombre,
+                    numeroJugador: input,
+                    numeroAmigoOculto: angel.numero
+                });
+
+                // Crear un mensaje de WhatsApp con el nombre del ángel
+                const whatsappMessage = `Tu amigo oculto es ${angel.nombre}`;
+                const whatsappLink = `https://wa.me/${input}?text=${encodeURIComponent(whatsappMessage)}`;
+                window.open(whatsappLink, "_blank");
+
+                // Actualizar la lista de jugadores
+                updatePlayerList();
+                document.getElementById('cellNumber').value = '';
+                document.getElementById('ingresarButton').disabled = true;
+
+            } catch (error) {
+                console.error("Error al guardar el emparejamiento: ", error);
+            }
         }
 
+        // Mostrar la lista de jugadores
         function updatePlayerList() {
             const playerList = document.getElementById('playerList');
             playerList.innerHTML = '';
             players.forEach(player => {
                 const li = document.createElement('li');
-                li.textContent = player.nombre; // Only show player name (not the angel)
+                li.textContent = player.nombre; 
                 playerList.appendChild(li);
             });
         }
 
-        function showAdminSection() {
-            const adminNumber = document.getElementById('adminNumber').value;
-            if (adminNumber === "963852741") {
-                document.getElementById('adminSection').classList.remove('hidden');
-                updateAdminPlayerList();
-            }
-        }
-
-        function updateAdminPlayerList() {
-            const adminPlayerList = document.getElementById('adminPlayerList');
-            adminPlayerList.innerHTML = '';
-            players.forEach(player => {
-                const li = document.createElement('li');
-                li.textContent = `${player.nombre} - Amigo Oculto: ${player.angel.nombre}`;
-                adminPlayerList.appendChild(li);
+        // Función para leer los emparejamientos desde Firestore
+        async function loadEmparejamientos() {
+            const emparejamientosSnapshot = await getDocs(collection(db, "emparejamientos"));
+            emparejamientosSnapshot.forEach(doc => {
+                const data = doc.data();
+                console.log(`Jugador: ${data.jugador} - Amigo Oculto: ${data.amigoOculto}`);
             });
         }
 
-        function resetGame() {
-            usedNumbers.clear();
-            players.length = 0;
-            remainingAngels = [...angels];
-            updatePlayerList();
-            updateAdminPlayerList();
-        }
-
-        function cleanPlayer() {
-            const playerNumber = prompt("Introduce el número de celular del jugador que deseas limpiar:");
-            const playerIndex = players.findIndex(player => player.numero === playerNumber);
-            if (playerIndex !== -1) {
-                const player = players[playerIndex];
-                remainingAngels.push(player.angel); // Return the angel to the pool
-                players.splice(playerIndex, 1); // Remove the player temporarily
-                usedNumbers.delete(player.numero); // Remove the number from the used set
-                alert(`Jugador ${player.nombre} ha sido limpiado y puede jugar nuevamente.`);
-                updatePlayerList();
-                updateAdminPlayerList();
-            } else {
-                alert("Jugador no encontrado.");
-            }
-        }
-
-        document.getElementById('adminNumber').addEventListener('input', showAdminSection);
+        // Llamar a la función para cargar emparejamientos al cargar la página
+        loadEmparejamientos();
     </script>
 </body>
 </html>
+
