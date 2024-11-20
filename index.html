@@ -51,7 +51,7 @@
 
     <div class="container">
         <label for="celular">Ingresa tu número de celular:</label>
-        <input type="text" id="celular" placeholder="Ej. 123456789">
+        <input type="text" id="celular" placeholder="Ej. 1234567890">
         <div id="resultado"></div>
     </div>
 
@@ -101,11 +101,26 @@
             const boton = document.createElement('button');
             boton.innerHTML = 'Sortear a mi Ángel';
             boton.onclick = function() {
-                // Crear el enlace único para WhatsApp
-                const enlaceWhatsapp = `https://wa.me/?text=Hola%20${persona.nombre},%20te%20ha%20tocado%20el%20amigo%20oculto.%20Tu%20ángel%20es%20XXXXXX.`;
+                // Elegir un amigo al azar de la lista de personas
+                const amigoOculto = elegirAmigoAlAzar(persona);
+
+                // Crear el mensaje para WhatsApp
+                const mensaje = `Hola ${persona.nombre}, te ha tocado el amigo oculto. Tu ángel es ${amigoOculto.nombre}. Shhh! No lo digas hasta el día escogido para entregar tu regalo. Ten un bendecido adviento de la natividad del niñito Jesús.`;
+
+                // Crear el enlace de WhatsApp con el mensaje
+                const enlaceWhatsapp = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
                 window.open(enlaceWhatsapp, '_blank');
             };
             document.body.appendChild(boton);
+        }
+
+        // Función para elegir un amigo al azar de la lista de personas (excluyendo a la persona actual)
+        function elegirAmigoAlAzar(personaActual) {
+            // Crear una nueva lista sin la persona actual
+            const listaSinActual = listaNumeros.filter(persona => persona.numero !== personaActual.numero);
+            // Elegir un amigo aleatorio
+            const indiceAleatorio = Math.floor(Math.random() * listaSinActual.length);
+            return listaSinActual[indiceAleatorio];
         }
 
         // Detectar cuando el usuario presiona "Enter" para verificar el número
