@@ -1,1 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emparejamientos</title>
+    <style>
+        body {
+            background-color: green;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            color: white;
+        }
+        h1 {
+            color: red;
+            margin-top: 50px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: red;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background-color: gray;
+            cursor: not-allowed;
+        }
+        .message {
+            color: yellow;
+            margin-top: 10px;
+        }
+        .pairing-list {
+            margin-top: 30px;
+            text-align: left;
+            max-height: 200px;
+            overflow-y: scroll;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Emparejamientos del Juego del Ángel</h1>
+    <div id="pairingList" class="pairing-list">
+        <h2>Lista de Emparejamientos</h2>
+        <ul id="pairings"></ul>
+    </div>
+
+    <button id="resetButton" onclick="resetGame()">Resetear Juego</button>
+    <button id="renewButton" onclick="renewPlayer()">Renovar Participante</button>
+
+    <script>
+        const players = JSON.parse(localStorage.getItem('players')) || [];
+        const angels = [
+            { numero: '933610068', nombre: 'Laura' },
+            { numero: '907565685', nombre: 'Eleana' },
+            { numero: '941200699', nombre: 'Michele' },
+            { numero: '963345328', nombre: 'Vicky' },
+            { numero: '961944437', nombre: 'Brian' },
+            { numero: '986772008', nombre: 'Mónica'},
+            { numero: '988284703', nombre: 'Richard' },
+            { numero: '959318366', nombre: 'Michael' },
+            { numero: '959193481', nombre: 'Lizeth' },
+            { numero: '941778213', nombre: 'Yamira' },
+            { numero: '984351841', nombre: 'Silvana' },
+            { numero: '918036171', nombre: 'Luis' },
+            { numero: '910446670', nombre: 'Ana' },
+            { numero: '965213858', nombre: 'Leo' },
+            { numero: '936458574', nombre: 'Lorena' },
+            { numero: '974380095', nombre: 'Elvira' },
+            { numero: '931724072', nombre: 'Gian' }
+        ];
+
+        // Actualiza la lista de emparejamientos
+        function updatePairingList() {
+            const pairingList = document.getElementById('pairings');
+            pairingList.innerHTML = '';
+            players.forEach(player => {
+                const li = document.createElement('li');
+                li.textContent = `${player.nombre} -> Amigo Oculto: ${player.angel.nombre}`;
+                pairingList.appendChild(li);
+            });
+        }
+
+        // Función para resetear el juego
+        function resetGame() {
+            localStorage.removeItem('players');
+            alert('El juego ha sido reiniciado.');
+            window.location.reload();
+        }
+
+        // Función para renovar un jugador (eliminar su emparejamiento y asignar un nuevo ángel)
+        function renewPlayer() {
+            const playerNumber = prompt("Introduce el número de celular del jugador que deseas renovar:");
+            const playerIndex = players.findIndex(player => player.numero === playerNumber);
+            if (playerIndex !== -1) {
+                const player = players[playerIndex];
+                const remainingAngels = angels.filter(angel => !players.some(p => p.angel.numero === angel.numero));
+                const newAngel = remainingAngels[Math.floor(Math.random() * remainingAngels.length)];
+                player.angel = newAngel;
+                alert(`${player.nombre} ha renovado su emparejamiento. Nuevo amigo oculto: ${newAngel.nombre}`);
+                updatePairingList();
+                localStorage.setItem('players', JSON.stringify(players));
+            } else {
+                alert("Jugador no encontrado.");
+            }
+        }
+
+        // Cargar y mostrar la lista de emparejamientos
+        updatePairingList();
+    </script>
+</body>
+</html>
 
