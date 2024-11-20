@@ -1,206 +1,209 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Juego del Ángel</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #008000; /* Verde navideño */
-            color: white;
-            text-align: center;
-        }
-        h1 {
-            color: red;
-            text-align: center;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: rgba(0, 0, 0, 0.5);
-            border-radius: 10px;
-        }
-        input[type="text"] {
-            width: 80%;
-            padding: 10px;
-            margin: 10px 0;
-            font-size: 18px;
-        }
-        button {
-            background-color: #f44336;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            margin-top: 20px;
-        }
-        button:hover {
-            background-color: #e32d2d;
-        }
-        .btn-support {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background-color: #4CAF50;
-            padding: 10px 20px;
-            font-size: 16px;
-        }
-        .message {
-            color: yellow;
-        }
-        .hidden {
-            display: none;
-        }
-        #support-panel {
-            margin-top: 20px;
-        }
-        .player-list {
-            margin-top: 30px;
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 10px;
-            border-radius: 10px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Juego del Ángel</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <h1>Bienvenidos al juego del ángel</h1>
-
-    <div class="container">
-        <p>Ingresa tu número de celular</p>
-        <input type="text" id="phone" placeholder="9 dígitos" maxlength="9" oninput="validatePhone()">
-        <div id="phone-message" class="message hidden"></div>
-        <button id="enterBtn" onclick="enterGame()">Ingresar número</button>
-
-        <div id="gameArea" class="hidden">
-            <div class="player-list" id="playerList"></div>
-            <p>Lista de quienes ya jugaron</p>
-        </div>
+  <div class="container">
+    <h1 id="titulo">Bienvenidos al juego del ángel</h1>
+    <p>Ingresa tu numero de celular:</p>
+    <input type="text" id="celular" placeholder="Número de celular (9 dígitos)">
+    <button id="btnIngresar" disabled>Ingresar número</button>
+    <p id="mensajeError" class="hidden">Este número no se encuentra en la lista, por favor comuníquese con el administrador.</p>
+    <div id="jugadores">
+      <h2>Lista de quienes ya jugaron</h2>
+      <ul id="listaJugadores"></ul>
     </div>
 
-    <!-- Soporte Panel -->
-    <button class="btn-support" onclick="showSupportPanel()">Soporte</button>
-    <div id="support-panel" class="hidden">
-        <input type="text" id="support-key" placeholder="Clave de soporte">
-        <button onclick="verifySupport()">Verificar</button>
-        <div id="admin-buttons" class="hidden">
-            <button onclick="resetGame()">Reset</button>
-            <button onclick="renewPlayer()">Renovar</button>
-        </div>
+    <button id="soporteBtn">Soporte</button>
+
+    <div id="soporteForm" class="hidden">
+      <input type="password" id="clave" placeholder="Clave de soporte">
+      <button id="btnValidarClave">Validar Clave</button>
+      <div id="listaAmigosOcultos" class="hidden">
+        <h3>Lista de jugadores y su amigo oculto:</h3>
+        <ul id="listaAmigos"></ul>
+        <button id="resetBtn" class="hidden">Reset</button>
+        <button id="limpiarBtn" class="hidden">Limpiar jugador</button>
+      </div>
     </div>
+  </div>
 
-    <script>
-        let usedPhones = [];
-        let players = [];
-        const gameData = [
-            { number: '123456789', name: 'Carlos' },
-            { number: '987654321', name: 'Ana' },
-            { number: '456789123', name: 'Luis' },
-            { number: '789123456', name: 'Marta' }
-        ];
-        let matchedPairs = [];
-
-        function validatePhone() {
-            const phone = document.getElementById('phone').value;
-            const message = document.getElementById('phone-message');
-            const phonePattern = /^[0-9]{9}$/;
-
-            if (!phonePattern.test(phone)) {
-                message.textContent = 'Número inválido. Debe tener 9 dígitos.';
-                message.classList.remove('hidden');
-            } else {
-                message.classList.add('hidden');
-            }
-        }
-
-        function enterGame() {
-            const phone = document.getElementById('phone').value;
-            if (usedPhones.includes(phone)) {
-                alert('Su número fue usado, comuníquese con el administrador.');
-                return;
-            }
-
-            if (phone.length === 9) {
-                usedPhones.push(phone);
-
-                // Select a random player
-                let availablePlayers = gameData.filter(player => !players.includes(player.name));
-                if (availablePlayers.length === 0) {
-                    alert('Ya no hay jugadores disponibles.');
-                    return;
-                }
-                const randomPlayer = availablePlayers[Math.floor(Math.random() * availablePlayers.length)];
-
-                // Assign the angel to the player
-                players.push(randomPlayer.name);
-                matchedPairs.push({ phone, angel: randomPlayer.name });
-
-                // Send WhatsApp message
-                const message = `Tu amigo oculto es: ${randomPlayer.name}`;
-                const encodedMessage = encodeURIComponent(message);
-                const whatsappUrl = `https://wa.me/${phone}?text=${encodedMessage}`;
-                window.open(whatsappUrl, '_blank');
-
-                // Show players who already played
-                displayPlayers();
-
-                // Hide phone input and show game area
-                document.getElementById('gameArea').classList.remove('hidden');
-            } else {
-                alert('Por favor ingrese un número válido de 9 dígitos.');
-            }
-        }
-
-        function displayPlayers() {
-            const playerListDiv = document.getElementById('playerList');
-            playerListDiv.innerHTML = '';
-            players.forEach(player => {
-                playerListDiv.innerHTML += `<p>${player}</p>`;
-            });
-        }
-
-        function showSupportPanel() {
-            document.getElementById('support-panel').classList.remove('hidden');
-        }
-
-        function verifySupport() {
-            const key = document.getElementById('support-key').value;
-            if (key === '963852741') {
-                document.getElementById('admin-buttons').classList.remove('hidden');
-                alert('Acceso de administrador confirmado.');
-            } else {
-                alert('Clave incorrecta.');
-            }
-        }
-
-        function resetGame() {
-            usedPhones = [];
-            players = [];
-            matchedPairs = [];
-            document.getElementById('playerList').innerHTML = '';
-            document.getElementById('gameArea').classList.add('hidden');
-            alert('El juego ha sido reiniciado.');
-        }
-
-        function renewPlayer() {
-            if (players.length === 0) {
-                alert('No hay jugadores para renovar.');
-                return;
-            }
-            const playerToRenew = prompt('Ingresa el nombre del jugador a renovar:', players.join(', '));
-            if (playerToRenew && players.includes(playerToRenew)) {
-                const index = players.indexOf(playerToRenew);
-                players.splice(index, 1);
-                matchedPairs = matchedPairs.filter(pair => pair.phone !== playerToRenew);
-                alert(`El jugador ${playerToRenew} ha sido renovado.`);
-                displayPlayers();
-            } else {
-                alert('Jugador no encontrado.');
-            }
-        }
-    </script>
-
+  <script src="script.js"></script>
 </body>
 </html>
+body {
+  font-family: Arial, sans-serif;
+  background-color: #0a4d3c; /* Fondo verde navideño */
+  color: white;
+  text-align: center;
+}
+
+h1 {
+  color: red;
+  text-align: justify;
+}
+
+.container {
+  margin: 0 auto;
+  padding: 20px;
+  max-width: 600px;
+}
+
+input, button {
+  margin-top: 10px;
+  padding: 10px;
+  font-size: 16px;
+  width: 80%;
+}
+
+button:disabled {
+  background-color: grey;
+}
+
+.hidden {
+  display: none;
+}
+
+#soporteForm {
+  margin-top: 20px;
+}
+
+#soporteBtn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+}
+
+#listaJugadores {
+  list-style-type: none;
+  padding: 0;
+}
+
+#listaAmigos {
+  list-style-type: none;
+  padding: 0;
+}
+// Lista de jugadores con número y nombre
+const jugadores = [
+  { numero: '123456789', nombre: 'Juan' },
+  { numero: '987654321', nombre: 'Ana' },
+  { numero: '456789123', nombre: 'Carlos' },
+];
+
+let jugadoresYaJugaron = [];
+let amigosOcultos = [];
+let claveCorrecta = "963852741";
+let numeroIngresado = '';
+
+// Función para actualizar la lista de jugadores
+function actualizarListaJugadores() {
+  const lista = document.getElementById("listaJugadores");
+  lista.innerHTML = '';
+  jugadoresYaJugaron.forEach(jugador => {
+    const li = document.createElement("li");
+    li.textContent = `${jugador.nombre}`;
+    lista.appendChild(li);
+  });
+}
+
+// Verificar si el número ya fue utilizado
+function verificarNumero() {
+  numeroIngresado = document.getElementById("celular").value;
+  const boton = document.getElementById("btnIngresar");
+
+  // Verifica si el número ya ha sido ingresado
+  if (jugadoresYaJugaron.some(jugador => jugador.numero === numeroIngresado)) {
+    boton.disabled = true;
+    document.getElementById("mensajeError").classList.remove("hidden");
+  } else {
+    document.getElementById("mensajeError").classList.add("hidden");
+    boton.disabled = false;
+  }
+}
+
+// Generar amigo oculto
+function asignarAmigoOculto() {
+  const jugador = jugadores.find(j => j.numero === numeroIngresado);
+
+  if (!jugador) {
+    alert("Este número no está registrado. Comuníquese con el administrador.");
+    return;
+  }
+
+  // Asignar amigo oculto de manera aleatoria
+  const disponibles = jugadores.filter(j => j.numero !== jugador.numero && !jugadoresYaJugaron.some(jy => jy.numero === j.numero));
+  if (disponibles.length === 0) {
+    alert("No hay más jugadores disponibles.");
+    return;
+  }
+
+  const amigoOculto = disponibles[Math.floor(Math.random() * disponibles.length)];
+
+  // Enviar mensaje de WhatsApp
+  const url = `https://wa.me/${numeroIngresado}?text=Tu%20amigo%20oculto%20es%20${amigoOculto.nombre}`;
+  window.open(url, "_blank");
+
+  // Registrar en jugadores ya jugaron
+  jugadoresYaJugaron.push({ numero: jugador.numero, nombre: jugador.nombre, amigoOculto: amigoOculto.nombre });
+  actualizarListaJugadores();
+}
+
+// Validar clave de soporte
+function validarClave() {
+  const clave = document.getElementById("clave").value;
+
+  if (clave === claveCorrecta) {
+    document.getElementById("listaAmigosOcultos").classList.remove("hidden");
+    document.getElementById("resetBtn").classList.remove("hidden");
+    document.getElementById("limpiarBtn").classList.remove("hidden");
+
+    // Mostrar lista de amigos ocultos
+    const listaAmigos = document.getElementById("listaAmigos");
+    listaAmigos.innerHTML = '';
+    jugadoresYaJugaron.forEach(jugador => {
+      const li = document.createElement("li");
+      li.textContent = `${jugador.nombre} - ${jugador.amigoOculto}`;
+      listaAmigos.appendChild(li);
+    });
+  } else {
+    alert("No es la clave");
+  }
+}
+
+// Resetear el juego
+function resetearJuego() {
+  jugadoresYaJugaron = [];
+  actualizarListaJugadores();
+  alert("Juego reseteado.");
+}
+
+// Limpiar jugador
+function limpiarJugador() {
+  const numero = prompt("Ingresa el número de celular del jugador a limpiar:");
+  const index = jugadoresYaJugaron.findIndex(j => j.numero === numero);
+  
+  if (index !== -1) {
+    jugadoresYaJugaron.splice(index, 1);
+    actualizarListaJugadores();
+    alert("Jugador limpiado.");
+  } else {
+    alert("Número no encontrado.");
+  }
+}
+
+// Evento de ingreso del número
+document.getElementById("celular").addEventListener("input", verificarNumero);
+document.getElementById("btnIngresar").addEventListener("click", asignarAmigoOculto);
+
+// Evento de soporte
+document.getElementById("soporteBtn").addEventListener("click", () => {
+  document.getElementById("soporteForm").classList.toggle("hidden");
+});
+
+document.getElementById("btnValidarClave").addEventListener("click", validarClave);
+document.getElementById("resetBtn").addEventListener("click", resetearJuego);
+document.getElementById("limpiarBtn").addEventListener("click", limpiarJugador);
