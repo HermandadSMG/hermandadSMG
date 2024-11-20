@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Amigo Oculto</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        main {
+            padding: 20px;
+        }
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+        .social-links a {
+            margin: 0 10px;
+            color: #333;
+            text-decoration: none;
+        }
+        .hidden {
+            display: none;
+        }
+        .button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+        .person-links {
+            margin-top: 20px;
+        }
+        .person-links a {
+            display: block;
+            margin: 10px 0;
+            text-decoration: none;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Juego de Amigo Oculto</h1>
+    <p>Ingresa los nombres de los jugadores para asignar los amigos secretos</p>
+</header>
+
+<main>
+    <section>
+        <h2>Asignación de Amigos Ocultos</h2>
+        <form id="amigo-oculto-form">
+            <label for="names">Ingresa los nombres (separados por comas):</label><br>
+            <input type="text" id="names" placeholder="Juan, Maria, Pedro" required><br><br>
+            <button type="button" class="button" onclick="asignarAmigos()">Generar Enlaces</button>
+        </form>
+
+        <div id="person-links" class="person-links hidden">
+            <h3>Enlace para ver tu Amigo Oculto:</h3>
+            <p id="enlace-para-ti"></p>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <p>&copy; 2024 Mi Nombre. Todos los derechos reservados.</p>
+</footer>
+
+<script>
+// Función para asignar amigos y generar enlaces
+function asignarAmigos() {
+    const nombresInput = document.getElementById("names").value;
+    const nombres = nombresInput.split(",").map(nombre => nombre.trim());
+
+    if (nombres.length < 2) {
+        alert("Por favor, ingresa al menos dos nombres.");
+        return;
+    }
+
+    const amigos = [...nombres];
+    let amigosAsignados = [];
+
+    // Asignar un amigo oculto a cada persona
+    while (amigos.length > 0) {
+        let amigo = amigos.splice(Math.floor(Math.random() * amigos.length), 1)[0];
+        amigosAsignados.push(amigo);
+    }
+
+    // Crear enlaces únicos para cada persona
+    const player = getPlayerFromURL();
+    if (!player) {
+        alert("No se ha identificado el jugador. Asegúrate de que el enlace esté bien configurado.");
+        return;
+    }
+
+    // Buscar el índice del jugador actual
+    const index = nombres.indexOf(player);
+    if (index === -1) {
+        alert("El jugador no está en la lista.");
+        return;
+    }
+
+    // Generar el enlace que corresponde al jugador actual
+    const enlace = generateLink(player, amigosAsignados[index]);
+
+    // Mostrar solo el enlace correspondiente al jugador actual
+    const enlaceDiv = document.getElementById("person-links");
+    const enlaceElemento = document.getElementById("enlace-para-ti");
+
+    enlaceElemento.innerHTML = `<a href="${enlace}" target="_blank">${enlace}</a>`;
+    enlaceDiv.classList.remove("hidden");
+
+    document.getElementById("amigo-oculto-form").reset();
+}
+
+// Función para generar un enlace único para cada jugador
+function generateLink(player, amigo) {
+    const baseURL = window.location.href.split('?')[0]; // Esto garantiza que use la misma URL base
+    const queryParams = `?player=${encodeURIComponent(player)}&amigo=${encodeURIComponent(amigo)}`;
+    return baseURL + queryParams;
+}
+
+// Función para obtener el nombre del jugador desde la URL
+function getPlayerFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('player');
+}
+
+// Comprobar si hay parámetros de URL para mostrar a quién le tocó
+function mostrarAmigo() {
+    const params = new URLSearchParams(window.location.search);
+    const player = params.get('player');
+    const amigo = params.get('amigo');
+    
+    if (player && amigo) {
+        document.body.innerHTML = `<h1>Hola, ${player}!</h1><p>Tu amigo oculto es: <strong>${amigo}</strong></p>`;
+    }
+}
+
+// Ejecutar la función mostrarAmigo cuando se carga la página si hay parámetros de URL
+window.onload = mostrarAmigo;
+
+</script>
+
+</body>
+</html>
