@@ -1,202 +1,32 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Juego del Ángel</title>
-    <style>
-        body {
-            background-color: green;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            color: white;
-        }
-        h1 {
-            color: red;
-            text-align: center;
-            margin-top: 50px;
-        }
-        input[type="text"] {
-            width: 200px;
-            padding: 10px;
-            margin-top: 20px;
-            border: none;
-            border-radius: 5px;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: red;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            margin-top: 20px;
-            cursor: pointer;
-        }
-        button:disabled {
-            background-color: gray;
-            cursor: not-allowed;
-        }
-        .message {
-            color: yellow;
-            margin-top: 10px;
-        }
-        .hidden {
-            display: none;
-        }
-        .player-list {
-            margin-top: 30px;
-            text-align: left;
-            max-height: 200px;
-            overflow-y: scroll;
-        }
-        .admin-section {
-            margin-top: 30px;
-        }
-    </style>
-</head>
-<body>
+<!-- Importar Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+  import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 
-    <h1>Bienvenidos al juego del ángel</h1>
-    <p>Ingresa tu número de celular:</p>
-    <input type="text" id="cellNumber" placeholder="Número de 9 dígitos" maxlength="9" oninput="validateInput()">
-    <div id="message" class="message"></div>
-    <button id="ingresarButton" onclick="assignAngel()" disabled>Ingresar número</button>
+  const firebaseConfig = {
+    apiKey: "tu-apiKey",
+    authDomain: "tu-authDomain",
+    projectId: "tu-projectId",
+    storageBucket: "tu-storageBucket",
+    messagingSenderId: "tu-senderId",
+    appId: "tu-appId"
+  };
 
-    <div class="player-list">
-        <h2>Lista de quienes ya jugaron</h2>
-        <ul id="playerList"></ul>
-    </div>
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
-    <div id="adminSection" class="admin-section hidden">
-        <h3>Administrador</h3>
-        <input type="text" id="adminNumber" placeholder="Número Administrador (963852741)" maxlength="9">
-        <button onclick="resetGame()">Reset</button>
-        <button onclick="cleanPlayer()">Limpiar jugador</button>
-        <ul id="adminPlayerList" class="hidden"></ul>
-    </div>
+  function saveData() {
+    const data = {
+      nombre: "Juan",
+      telefono: "123456789",
+      estado: "No ha jugado"
+    };
 
-    <!-- Firebase SDK -->
-    <script type="module">
-        // Importa las funciones necesarias de Firebase
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
-
-        // Configuración de Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyCAhTOc8Wf23nCToC7e59Kp1ZcpQDQpnMI",
-            authDomain: "bd-juego-angel.firebaseapp.com",
-            projectId: "bd-juego-angel",
-            storageBucket: "bd-juego-angel.firebasestorage.app",
-            messagingSenderId: "645237533595",
-            appId: "1:645237533595:web:07199ba3da7c8ac9b1cf3e"
-        };
-
-        // Inicializa Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        // Lista de jugadores y ángeles
-        const players = [];
-        const usedNumbers = new Set();
-        const angels = [
-            { numero: '933610068', nombre: 'Laura' },
-            { numero: '907565685', nombre: 'Eleana' },
-            { numero: '941200699', nombre: 'Michele' },
-            { numero: '963345328', nombre: 'Vicky' },
-            { numero: '961944437', nombre: 'Brian' },
-            { numero: '986772008', nombre: 'Mónica'},
-            { numero: '988284703', nombre: 'Richard' },
-            { numero: '959318366', nombre: 'Michael' },
-            { numero: '959193481', nombre: 'Lizeth' },
-            { numero: '941778213', nombre: 'Yamira' },
-            { numero: '984351841', nombre: 'Silvana' },
-            { numero: '918036171', nombre: 'Luis' },
-            { numero: '910446670', nombre: 'Ana' },
-            { numero: '965213858', nombre: 'Leo' },
-            { numero: '936458574', nombre: 'Lorena' },
-            { numero: '974380095', nombre: 'Elvira' },
-            { numero: '931724072', nombre: 'Gian' }
-        ];
-        let remainingAngels = [...angels];
-
-        // Validación de input para el número de celular
-        function validateInput() {
-            const input = document.getElementById('cellNumber').value;
-            const button = document.getElementById('ingresarButton');
-            const message = document.getElementById('message');
-            
-            if (input.length === 9 && !isNaN(input)) {
-                button.disabled = false;
-                message.textContent = "";
-            } else {
-                button.disabled = true;
-                message.textContent = "Por favor ingresa un número válido de 9 dígitos.";
-            }
-        }
-
-        // Asignar un ángel al jugador y guardarlo en Firestore
-        async function assignAngel() {
-            const input = document.getElementById('cellNumber').value;
-            const message = document.getElementById('message');
-            if (usedNumbers.has(input)) {
-                message.textContent = "Este número ya fue usado, por favor comunicate con el administrador.";
-                return;
-            }
-
-            usedNumbers.add(input);
-            const randomIndex = Math.floor(Math.random() * remainingAngels.length);
-            const angel = remainingAngels[randomIndex];
-            remainingAngels.splice(randomIndex, 1);
-
-            players.push({ numero: input, nombre: `Jugador ${input}`, angel });
-
-            // Guardar el emparejamiento en Firestore
-            try {
-                await addDoc(collection(db, "emparejamientos"), {
-                    jugador: `Jugador ${input}`,
-                    amigoOculto: angel.nombre,
-                    numeroJugador: input,
-                    numeroAmigoOculto: angel.numero
-                });
-
-                // Crear un mensaje de WhatsApp con el nombre del ángel
-                const whatsappMessage = `Tu amigo oculto es ${angel.nombre}`;
-                const whatsappLink = `https://wa.me/${input}?text=${encodeURIComponent(whatsappMessage)}`;
-                window.open(whatsappLink, "_blank");
-
-                // Actualizar la lista de jugadores
-                updatePlayerList();
-                document.getElementById('cellNumber').value = '';
-                document.getElementById('ingresarButton').disabled = true;
-
-            } catch (error) {
-                console.error("Error al guardar el emparejamiento: ", error);
-            }
-        }
-
-        // Mostrar la lista de jugadores
-        function updatePlayerList() {
-            const playerList = document.getElementById('playerList');
-            playerList.innerHTML = '';
-            players.forEach(player => {
-                const li = document.createElement('li');
-                li.textContent = player.nombre; 
-                playerList.appendChild(li);
-            });
-        }
-
-        // Función para leer los emparejamientos desde Firestore
-        async function loadEmparejamientos() {
-            const emparejamientosSnapshot = await getDocs(collection(db, "emparejamientos"));
-            emparejamientosSnapshot.forEach(doc => {
-                const data = doc.data();
-                console.log(`Jugador: ${data.jugador} - Amigo Oculto: ${data.amigoOculto}`);
-            });
-        }
-
-        // Llamar a la función para cargar emparejamientos al cargar la página
-        loadEmparejamientos();
-    </script>
-</body>
-</html>
-
+    const reference = ref(db, 'Participantes');
+    push(reference, data).then(() => {
+      console.log("Datos guardados correctamente");
+    }).catch(error => {
+      console.error("Error al guardar datos: ", error);
+    });
+  }
+</script>
