@@ -3,30 +3,13 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
   import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 
-  const firebaseConfig = {
-    apiKey: "tu-apiKey",
-    authDomain: "tu-authDomain",
-    projectId: "tu-projectId",
-    storageBucket: "tu-storageBucket",
-    messagingSenderId: "tu-senderId",
-    appId: "tu-appId"
-  };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-
-  function saveData() {
-    const data = {
-      nombre: "Juan",
-      telefono: "123456789",
-      estado: "No ha jugado"
-    };
-
-    const reference = ref(db, 'Participantes');
-    push(reference, data).then(() => {
-      console.log("Datos guardados correctamente");
-    }).catch(error => {
-      console.error("Error al guardar datos: ", error);
-    });
-  }
-</script>
+ const firebaseConfig = {
+  apiKey: "AIzaSyCAhTOc8Wf23nCToC7e59Kp1ZcpQDQpnMI",
+  authDomain: "bd-juego-angel.firebaseapp.com",
+  databaseURL: "https://bd-juego-angel-default-rtdb.firebaseio.com",
+  projectId: "bd-juego-angel",
+  storageBucket: "bd-juego-angel.firebasestorage.app",
+  messagingSenderId: "645237533595",
+  appId: "1:645237533595:web:07199ba3da7c8ac9b1cf3e"
+}; 
