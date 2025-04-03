@@ -3,47 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conexión a Firebase</title>
-    <!-- Incluir Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+    <title>Formulario de Google</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+            border-radius: 8px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #777;
+        }
+    </style>
 </head>
 <body>
-    <h1>Conexión a Firebase</h1>
-    <p id="status">Cargando...</p>
 
-    <script>
-        // Tu configuración de Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyCAhTOc8Wf23nCToC7e59Kp1ZcpQDQpnMI",
-            authDomain: "bd-juego-angel.firebaseapp.com",
-            databaseURL: "https://bd-juego-angel-default-rtdb.firebaseio.com",
-            projectId: "bd-juego-angel",
-            storageBucket: "bd-juego-angel.firebasestorage.app",
-            messagingSenderId: "645237533595",
-            appId: "1:645237533595:web:07199ba3da7c8ac9b1cf3e"
-        };
+    <div class="container">
+        <h1>Formulario de Contacto</h1>
+        <!-- Incrusta el formulario de Google aquí con un iframe -->
+        <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSeDoqimwJcMAMvXHTAZ0BuPgsVRna7gY-HYpIqNfIJ0K0gxmA/viewform?usp=header" 
+                frameborder="0" marginheight="0" marginwidth="0">Cargando…</iframe>
+    </div>
 
-        // Inicializar Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const database = firebase.database(app);
+    <div class="footer">
+        <p>&copy; 2025 Tu Empresa. Todos los derechos reservados.</p>
+    </div>
 
-        // Comprobar la conexión con Firebase
-        function comprobarConexion() {
-            const dbRef = database.ref();
-            dbRef.once('value')
-                .then((snapshot) => {
-                    document.getElementById('status').innerText = 'Conexión exitosa a Firebase!';
-                    console.log('Conexión exitosa. Datos:', snapshot.val());
-                })
-                .catch((error) => {
-                    document.getElementById('status').innerText = 'Error de conexión: ' + error.message;
-                    console.error('Error de conexión:', error);
-                });
-        }
-
-        // Llamamos a la función para comprobar la conexión
-        comprobarConexion();
-    </script>
 </body>
 </html>
